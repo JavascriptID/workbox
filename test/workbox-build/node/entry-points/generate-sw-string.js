@@ -130,6 +130,7 @@ describe(`[workbox-build] entry-points/generate-sw-string.js (End to End)`, func
       const options = Object.assign({}, BASE_OPTIONS, {
         importScripts,
         globDirectory: GLOB_DIR,
+        globPatterns: ['**/*.{js,css,html}'],
       });
 
       let swCode = await generateSWString(options);
@@ -293,7 +294,7 @@ describe(`[workbox-build] entry-points/generate-sw-string.js (End to End)`, func
 
       const swCode = await generateSWString(options);
       await validateServiceWorkerRuntime({swCode, expectedMethodCalls: {
-        [STRING_HANDLER]: [[{}]],
+        [STRING_HANDLER]: [[]],
         importScripts: [[...DEFAULT_IMPORT_SCRIPTS]],
         suppressWarnings: [[]],
         precacheAndRoute: [[[], {}]],
@@ -311,7 +312,7 @@ describe(`[workbox-build] entry-points/generate-sw-string.js (End to End)`, func
       const swCode = await generateSWString(options);
 
       await validateServiceWorkerRuntime({swCode, expectedMethodCalls: {
-        [STRING_HANDLER]: [[{}]],
+        [STRING_HANDLER]: [[]],
         importScripts: [[...DEFAULT_IMPORT_SCRIPTS]],
         suppressWarnings: [[]],
         precacheAndRoute: [[[], {}]],
@@ -332,7 +333,7 @@ describe(`[workbox-build] entry-points/generate-sw-string.js (End to End)`, func
       const swCode = await generateSWString(options);
 
       await validateServiceWorkerRuntime({swCode, expectedMethodCalls: {
-        [STRING_HANDLER]: [[{}], [{}]],
+        [STRING_HANDLER]: [[], []],
         importScripts: [[...DEFAULT_IMPORT_SCRIPTS]],
         suppressWarnings: [[]],
         precacheAndRoute: [[[], {}]],
@@ -385,7 +386,15 @@ describe(`[workbox-build] entry-points/generate-sw-string.js (End to End)`, func
       const swCode = await generateSWString(options);
 
       await validateServiceWorkerRuntime({swCode, expectedMethodCalls: {
-        [STRING_HANDLER]: [[runtimeCachingOptions]],
+        [STRING_HANDLER]: [[{
+          cacheName: runtimeCachingOptions.cacheName,
+          plugins: runtimeCachingOptions.plugins.concat([
+            'workbox.expiration.Plugin',
+            'workbox.cacheableResponse.Plugin',
+          ]),
+        }]],
+        cacheableResponsePlugin: [[runtimeCachingOptions.cacheableResponse]],
+        cacheExpirationPlugin: [[runtimeCachingOptions.cacheExpiration]],
         importScripts: [[...DEFAULT_IMPORT_SCRIPTS]],
         suppressWarnings: [[]],
         precacheAndRoute: [[[], {}]],
@@ -424,7 +433,15 @@ describe(`[workbox-build] entry-points/generate-sw-string.js (End to End)`, func
       const swCode = await generateSWString(options);
 
       await validateServiceWorkerRuntime({swCode, expectedMethodCalls: {
-        [STRING_HANDLER]: [[firstRuntimeCachingOptions], [secondRuntimeCachingOptions]],
+        [STRING_HANDLER]: [[{
+          cacheName: firstRuntimeCachingOptions.cacheName,
+          plugins: ['workbox.expiration.Plugin'],
+        }], [{
+          cacheName: secondRuntimeCachingOptions.cacheName,
+          plugins: ['workbox.cacheableResponse.Plugin'],
+        }]],
+        cacheableResponsePlugin: [[secondRuntimeCachingOptions.cacheableResponse]],
+        cacheExpirationPlugin: [[firstRuntimeCachingOptions.cacheExpiration]],
         importScripts: [[...DEFAULT_IMPORT_SCRIPTS]],
         suppressWarnings: [[]],
         precacheAndRoute: [[[], {}]],
