@@ -18,11 +18,11 @@ const joi = require('joi');
 
 const baseSchema = require('./base-schema');
 const defaults = require('./defaults');
+const regExpObject = require('./reg-exp-object');
 
 module.exports = baseSchema.keys({
   globDirectory: joi.string().required(),
-  injectionPointRegexp: joi.object().type(RegExp)
-    .default(defaults.injectionPointRegexp),
+  injectionPointRegexp: regExpObject.default(defaults.injectionPointRegexp),
   swSrc: joi.string().required(),
   swDest: joi.string().required(),
 });
