@@ -36,10 +36,12 @@ const writeServiceWorkerUsingDefaultTemplate =
  *
  * @param {Object} config Please refer to the
  * [configuration guide](https://developers.google.com/web/tools/workbox/modules/workbox-build#full_generatesw_config).
- * @return {Promise<{count: Number, size: Number}>} A promise that resolves once
- * the service worker file has been written to `swDest`. The `size` property
- * contains the aggregate size of all the precached entries, in bytes, and the
- * `count` property contains the total number of precached entries.
+ * @return {Promise<{count: Number, size: Number, warnings: Array<String>}>}
+ * A promise that resolves once the service worker file has been written to
+ * `swDest`. The `size` property contains the aggregate size of all the
+ * precached entries, in bytes, and the `count` property contains the total
+ * number of precached entries. Any non-fatal warning messages will be returned
+ * via `warnings`.
  *
  * @memberof module:workbox-build
  */
@@ -51,9 +53,7 @@ async function generateSW(config) {
   // Do nothing if importWorkboxFrom is set to 'disabled'. Otherwise, check:
   if (options.importWorkboxFrom === 'cdn') {
     const cdnUrl = cdnUtils.getModuleUrl('workbox-sw');
-    // importScripts may or may not already be an array containing other URLs.
-    // Either way, list cdnUrl first.
-    options.importScripts = [cdnUrl].concat(options.importScripts || []);
+    options.workboxSWImport = cdnUrl;
   } else if (options.importWorkboxFrom === 'local') {
     // Copy over the dev + prod version of all of the core libraries.
     const workboxDirectoryName = await copyWorkboxLibraries(destDirectory);
@@ -67,22 +67,18 @@ async function generateSW(config) {
     const workboxSWPkg = require(`workbox-sw/package.json`);
     const workboxSWFilename = path.basename(workboxSWPkg.main);
 
-    // importScripts may or may not already be an array containing other URLs.
-    // Either way, list workboxSWFilename first.
-    options.importScripts = [
-      `${workboxDirectoryName}/${workboxSWFilename}`,
-    ].concat(options.importScripts || []);
-
+    options.workboxSWImport = `${workboxDirectoryName}/${workboxSWFilename}`;
     options.modulePathPrefix = workboxDirectoryName;
   }
 
-  const {count, size, manifestEntries} = await getFileManifestEntries(options);
+  const {count, size, manifestEntries, warnings} =
+    await getFileManifestEntries(options);
 
   await writeServiceWorkerUsingDefaultTemplate(Object.assign({
     manifestEntries,
   }, options));
 
-  return {count, size};
+  return {count, size, warnings};
 }
 
 module.exports = generateSW;

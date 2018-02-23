@@ -104,8 +104,8 @@ describe(`[workbox-build] entry-points/generate-sw.js (End to End)`, function() 
       const swDest = tempy.file();
       const options = Object.assign({}, BASE_OPTIONS, {swDest});
 
-      const {count, size} = await generateSW(options);
-
+      const {count, size, warnings} = await generateSW(options);
+      expect(warnings).to.be.empty;
       expect(count).to.eql(6);
       expect(size).to.eql(2421);
       await validateServiceWorkerRuntime({swFile: swDest, expectedMethodCalls: {
@@ -140,8 +140,8 @@ describe(`[workbox-build] entry-points/generate-sw.js (End to End)`, function() 
         importWorkboxFrom: 'local',
       });
 
-      const {count, size} = await generateSW(options);
-
+      const {count, size, warnings} = await generateSW(options);
+      expect(warnings).to.be.empty;
       expect(count).to.eql(6);
       expect(size).to.eql(2421);
 
@@ -245,8 +245,8 @@ describe(`[workbox-build] entry-points/generate-sw.js (End to End)`, function() 
         importWorkboxFrom: 'local',
       });
 
-      const {count, size} = await generateSW(options);
-
+      const {count, size, warnings} = await generateSW(options);
+      expect(warnings).to.be.empty;
       expect(count).to.eql(1);
       expect(size).to.eql(testFileContents.length);
     });
@@ -259,12 +259,12 @@ describe(`[workbox-build] entry-points/generate-sw.js (End to End)`, function() 
         swDest,
       });
 
-      const {count, size} = await generateSW(options);
-
+      const {count, size, warnings} = await generateSW(options);
+      expect(warnings).to.be.empty;
       expect(count).to.eql(6);
       expect(size).to.eql(2421);
       await validateServiceWorkerRuntime({swFile: swDest, expectedMethodCalls: {
-        importScripts: [[WORKBOX_SW_CDN_URL, ...importScripts]],
+        importScripts: [[WORKBOX_SW_CDN_URL], [...importScripts]],
         suppressWarnings: [[]],
         precacheAndRoute: [[[{
           url: 'index.html',
@@ -302,8 +302,8 @@ describe(`[workbox-build] entry-points/generate-sw.js (End to End)`, function() 
       };
       const options = Object.assign({}, BASE_OPTIONS, additionalOptions, {swDest});
 
-      const {count, size} = await generateSW(options);
-
+      const {count, size, warnings} = await generateSW(options);
+      expect(warnings).to.be.empty;
       expect(count).to.eql(6);
       expect(size).to.eql(2421);
       await validateServiceWorkerRuntime({swFile: swDest, expectedMethodCalls: {
@@ -344,8 +344,8 @@ describe(`[workbox-build] entry-points/generate-sw.js (End to End)`, function() 
         swDest,
       });
 
-      const {count, size} = await generateSW(options);
-
+      const {count, size, warnings} = await generateSW(options);
+      expect(warnings).to.be.empty;
       expect(count).to.eql(6);
       expect(size).to.eql(2421);
       await validateServiceWorkerRuntime({swFile: swDest, expectedMethodCalls: {
@@ -387,8 +387,8 @@ describe(`[workbox-build] entry-points/generate-sw.js (End to End)`, function() 
         swDest,
       });
 
-      const {count, size} = await generateSW(options);
-
+      const {count, size, warnings} = await generateSW(options);
+      expect(warnings).to.be.empty;
       expect(count).to.eql(6);
       expect(size).to.eql(2421);
       await validateServiceWorkerRuntime({swFile: swDest, expectedMethodCalls: {
@@ -428,8 +428,8 @@ describe(`[workbox-build] entry-points/generate-sw.js (End to End)`, function() 
         swDest,
       });
 
-      const {count, size} = await generateSW(options);
-
+      const {count, size, warnings} = await generateSW(options);
+      expect(warnings).to.be.empty;
       expect(count).to.eql(4);
       expect(size).to.eql(2352);
       await validateServiceWorkerRuntime({swFile: swDest, expectedMethodCalls: {
@@ -517,8 +517,8 @@ describe(`[workbox-build] entry-points/generate-sw.js (End to End)`, function() 
         swDest,
       });
 
-      const {count, size} = await generateSW(options);
-
+      const {count, size, warnings} = await generateSW(options);
+      expect(warnings).to.be.empty;
       expect(count).to.eql(6);
       expect(size).to.eql(2421);
       await validateServiceWorkerRuntime({swFile: swDest, expectedMethodCalls: {
@@ -580,8 +580,8 @@ describe(`[workbox-build] entry-points/generate-sw.js (End to End)`, function() 
         swDest,
       });
 
-      const {count, size} = await generateSW(options);
-
+      const {count, size, warnings} = await generateSW(options);
+      expect(warnings).to.be.empty;
       expect(count).to.eql(6);
       expect(size).to.eql(2421);
       await validateServiceWorkerRuntime({swFile: swDest, expectedMethodCalls: {
@@ -664,8 +664,8 @@ describe(`[workbox-build] entry-points/generate-sw.js (End to End)`, function() 
         swDest,
       });
 
-      const {count, size} = await generateSW(options);
-
+      const {count, size, warnings} = await generateSW(options);
+      expect(warnings).to.be.empty;
       expect(count).to.eql(6);
       expect(size).to.eql(2421);
       await validateServiceWorkerRuntime({swFile: swDest, expectedMethodCalls: {

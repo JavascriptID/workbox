@@ -126,10 +126,10 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
         try {
           // First, validate that the generated service-worker.js meets some basic assumptions.
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
-            importScripts: [[
-              FILE_MANIFEST_NAME,
-              WORKBOX_SW_FILE_NAME,
-            ]],
+            importScripts: [
+              [WORKBOX_SW_FILE_NAME],
+              [FILE_MANIFEST_NAME],
+            ],
             suppressWarnings: [[]],
             precacheAndRoute: [[[], {}]],
           }});
@@ -188,10 +188,10 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
         try {
           // First, validate that the generated service-worker.js meets some basic assumptions.
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
-            importScripts: [[
-              FILE_MANIFEST_NAME,
-              WORKBOX_SW_FILE_NAME,
-            ]],
+            importScripts: [
+              [WORKBOX_SW_FILE_NAME],
+              [FILE_MANIFEST_NAME],
+            ],
             suppressWarnings: [[]],
             precacheAndRoute: [[[], {}]],
           }});
@@ -245,10 +245,10 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
         try {
           // First, validate that the generated service-worker.js meets some basic assumptions.
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
-            importScripts: [[
-              FILE_MANIFEST_NAME,
-              workboxEntryName,
-            ]],
+            importScripts: [
+              [workboxEntryName],
+              [FILE_MANIFEST_NAME],
+            ],
             suppressWarnings: [[]],
             precacheAndRoute: [[[], {}]],
           }});
@@ -316,10 +316,10 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
 
           // First, validate that the generated service-worker.js meets some basic assumptions.
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
-            importScripts: [[
-              FILE_MANIFEST_NAME,
-              workboxSWImport,
-            ]],
+            importScripts: [
+              [workboxSWImport],
+              [FILE_MANIFEST_NAME],
+            ],
             setConfig: [[{modulePathPrefix}]],
             suppressWarnings: [[]],
             precacheAndRoute: [[[], {}]],
@@ -391,10 +391,10 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
 
           // First, validate that the generated service-worker.js meets some basic assumptions.
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
-              importScripts: [[
-                publicPath + FILE_MANIFEST_NAME,
-                publicPath + workboxSWImport,
-              ]],
+              importScripts: [
+                [publicPath + workboxSWImport],
+                [publicPath + FILE_MANIFEST_NAME],
+              ],
               setConfig: [[{modulePathPrefix}]],
               suppressWarnings: [[]],
               precacheAndRoute: [[[], {}]],
@@ -450,10 +450,10 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
         try {
           // First, validate that the generated service-worker.js meets some basic assumptions.
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
-            importScripts: [[
-              FILE_MANIFEST_NAME,
-              WORKBOX_SW_FILE_NAME,
-            ]],
+            importScripts: [
+              [WORKBOX_SW_FILE_NAME],
+              [FILE_MANIFEST_NAME],
+            ],
             suppressWarnings: [[]],
             precacheAndRoute: [[[], {}]],
           }});
@@ -508,10 +508,10 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
         try {
           // First, validate that the generated service-worker.js meets some basic assumptions.
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
-            importScripts: [[
-              FILE_MANIFEST_NAME,
-              WORKBOX_SW_FILE_NAME,
-            ]],
+            importScripts: [
+              [WORKBOX_SW_FILE_NAME],
+              [FILE_MANIFEST_NAME],
+            ],
             suppressWarnings: [[]],
             precacheAndRoute: [[[], {}]],
           }});
@@ -567,10 +567,10 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
         try {
           // First, validate that the generated service-worker.js meets some basic assumptions.
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
-            importScripts: [[
-              FILE_MANIFEST_NAME,
-              WORKBOX_SW_FILE_NAME,
-            ]],
+            importScripts: [
+              [WORKBOX_SW_FILE_NAME],
+              [FILE_MANIFEST_NAME],
+            ],
             suppressWarnings: [[]],
             precacheAndRoute: [[[], {}]],
           }});
@@ -630,10 +630,10 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
         try {
           // First, validate that the generated service-worker.js meets some basic assumptions.
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
-            importScripts: [[
-              FILE_MANIFEST_NAME,
-              WORKBOX_SW_FILE_NAME,
-            ]],
+            importScripts: [
+              [WORKBOX_SW_FILE_NAME],
+              [FILE_MANIFEST_NAME],
+            ],
             clientsClaim: [[]],
             skipWaiting: [[]],
             suppressWarnings: [[]],
@@ -653,6 +653,79 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
             url: 'entry2-17c2a1b5c94290899539.js',
           }, {
             url: 'entry1-d7f4e7088b64a9896b23.js',
+          }];
+          expect(context.self.__precacheManifest).to.eql(expectedEntries);
+
+          done();
+        } catch (error) {
+          done(error);
+        }
+      });
+    });
+
+    it(`should add warnings from the workbox-build methods to compilation.warnings`, function(done) {
+      const FILE_MANIFEST_NAME = 'precache-manifest.eca1a14406dbeefe3925758a8999609a.js';
+      const outputDir = tempy.directory();
+      const config = {
+        entry: {
+          entry1: path.join(SRC_DIR, WEBPACK_ENTRY_FILENAME),
+        },
+        output: {
+          filename: '[name]-[chunkhash].js',
+          path: outputDir,
+        },
+        plugins: [
+          // This is not an exhaustive test of all the supported options, but
+          // it should be enough to confirm that they're being interpreted
+          // by workbox-build.generateSWString() properly.
+          new GenerateSW({
+            globDirectory: SRC_DIR,
+            globPatterns: ['**/*'],
+            // Make this large enough to cache some, but not all, files.
+            maximumFileSizeToCacheInBytes: 20,
+          }),
+        ],
+      };
+
+      const compiler = webpack(config);
+      compiler.run(async (webpackError, stats) => {
+        if (webpackError) {
+          return done(webpackError);
+        }
+
+        // Check to make sure we have warnings about the files that are too large to cache.
+        const statsJson = stats.toJson('verbose');
+        expect(statsJson.warnings).to.have.lengthOf(5);
+
+        const swFile = path.join(outputDir, 'service-worker.js');
+        try {
+          // First, validate that the generated service-worker.js meets some basic assumptions.
+          await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
+            importScripts: [
+              [WORKBOX_SW_FILE_NAME],
+              [FILE_MANIFEST_NAME],
+            ],
+            suppressWarnings: [[]],
+            precacheAndRoute: [[[{
+              revision: '544658ab25ee8762dc241e8b1c5ed96d',
+              url: 'page-1.html',
+            }, {
+              revision: 'a3a71ce0b9b43c459cf58bd37e911b74',
+              url: 'page-2.html',
+            }, {
+              revision: 'edeab2a4c398a3f25d7b92bedea10d31',
+              url: 'webpackEntry.js',
+            }], {}]],
+          }});
+
+          // Next, test the generated manifest to ensure that it contains
+          // exactly the entries that we expect.
+          const manifestFileContents = await fse.readFile(path.join(outputDir, FILE_MANIFEST_NAME), 'utf-8');
+          const context = {self: {}};
+          vm.runInNewContext(manifestFileContents, context);
+
+          const expectedEntries = [{
+            url: 'entry1-89d6aad5d80ebcfb2e8a.js',
           }];
           expect(context.self.__precacheManifest).to.eql(expectedEntries);
 
@@ -693,10 +766,10 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
         try {
           // First, validate that the generated service-worker.js meets some basic assumptions.
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
-            importScripts: [[
-              FILE_MANIFEST_NAME,
-              WORKBOX_SW_FILE_NAME,
-            ]],
+            importScripts: [
+              [WORKBOX_SW_FILE_NAME],
+              [FILE_MANIFEST_NAME],
+            ],
             suppressWarnings: [[]],
             precacheAndRoute: [[[], {}]],
           }});
@@ -754,10 +827,10 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
         try {
           // First, validate that the generated service-worker.js meets some basic assumptions.
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
-            importScripts: [[
-              FILE_MANIFEST_NAME,
-              WORKBOX_SW_FILE_NAME,
-            ]],
+            importScripts: [
+              [WORKBOX_SW_FILE_NAME],
+              [FILE_MANIFEST_NAME],
+            ],
             suppressWarnings: [[]],
             precacheAndRoute: [[[], {}]],
           }});
@@ -839,10 +912,10 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
         try {
           // First, validate that the generated service-worker.js meets some basic assumptions.
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
-            importScripts: [[
-              FILE_MANIFEST_NAME,
-              WORKBOX_SW_FILE_NAME,
-            ]],
+            importScripts: [
+              [WORKBOX_SW_FILE_NAME],
+              [FILE_MANIFEST_NAME],
+            ],
             suppressWarnings: [[]],
             precacheAndRoute: [[[], {}]],
           }});
@@ -893,10 +966,10 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
         try {
           // First, validate that the generated service-worker.js meets some basic assumptions.
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
-            importScripts: [[
-              FILE_MANIFEST_NAME,
-              WORKBOX_SW_FILE_NAME,
-            ]],
+            importScripts: [
+              [WORKBOX_SW_FILE_NAME],
+              [FILE_MANIFEST_NAME],
+            ],
             suppressWarnings: [[]],
             precacheAndRoute: [[[], {}]],
           }});
@@ -954,10 +1027,10 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
         try {
           // First, validate that the generated service-worker.js meets some basic assumptions.
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
-            importScripts: [[
-              FILE_MANIFEST_NAME,
-              WORKBOX_SW_FILE_NAME,
-            ]],
+            importScripts: [
+              [WORKBOX_SW_FILE_NAME],
+              [FILE_MANIFEST_NAME],
+            ],
             suppressWarnings: [[]],
             precacheAndRoute: [[[], {}]],
           }});
@@ -1019,10 +1092,10 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
         try {
           // First, validate that the generated service-worker.js meets some basic assumptions.
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
-            importScripts: [[
-              FILE_MANIFEST_NAME,
-              WORKBOX_SW_FILE_NAME,
-            ]],
+            importScripts: [
+              [WORKBOX_SW_FILE_NAME],
+              [FILE_MANIFEST_NAME],
+            ],
             suppressWarnings: [[]],
             precacheAndRoute: [[[], {}]],
           }});
