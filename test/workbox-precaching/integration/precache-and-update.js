@@ -1,9 +1,11 @@
 const expect = require('chai').expect;
 
-const activateSW = require('../../../infra/testing/activate-sw');
+const activateAndControlSW = require('../../../infra/testing/activate-and-control');
 const cleanSWEnv = require('../../../infra/testing/clean-sw');
 
 describe(`[workbox-precaching] Precache and Update`, function() {
+  const DB_NAME = 'workbox-precache-http___localhost_3004_test_workbox-precaching_static_precache-and-update_';
+
   let testServerAddress = global.__workbox.server.getAddress();
   const testingUrl = `${testServerAddress}/test/workbox-precaching/static/precache-and-update/`;
 
@@ -30,6 +32,8 @@ describe(`[workbox-precaching] Precache and Update`, function() {
     const SW_1_URL = `${testingUrl}sw-1.js`;
     const SW_2_URL = `${testingUrl}sw-2.js`;
 
+    await global.__workbox.webdriver.get(testingUrl);
+
     const getIdbData = global.__workbox.seleniumBrowser.getId() === 'safari' ?
       require('../utils/getPrecachedIDBData-safari') :
       require('../utils/getPrecachedIDBData');
@@ -43,7 +47,7 @@ describe(`[workbox-precaching] Precache and Update`, function() {
     global.__workbox.server.reset();
 
     // Register the first service worker.
-    await activateSW(SW_1_URL);
+    await activateAndControlSW(SW_1_URL);
 
     // Check that only the precache cache was created.
     const keys = await global.__workbox.webdriver.executeAsyncScript((cb) => {
@@ -60,7 +64,7 @@ describe(`[workbox-precaching] Precache and Update`, function() {
       'http://localhost:3004/test/workbox-precaching/static/precache-and-update/styles/index.css',
     ]);
 
-    let savedIDBData = await getIdbData();
+    let savedIDBData = await getIdbData(DB_NAME);
     expect(savedIDBData).to.deep.equal([
       {
         revision: '1',
@@ -104,7 +108,7 @@ describe(`[workbox-precaching] Precache and Update`, function() {
     }
 
     // Activate the second service worker
-    await activateSW(SW_2_URL);
+    await activateAndControlSW(SW_2_URL);
 
     // Ensure that the new assets were requested and cache busted.
     requestsMade = global.__workbox.server.getRequests();
@@ -124,7 +128,7 @@ describe(`[workbox-precaching] Precache and Update`, function() {
       'http://localhost:3004/test/workbox-precaching/static/precache-and-update/new-request.txt',
     ]);
 
-    savedIDBData = await getIdbData();
+    savedIDBData = await getIdbData(DB_NAME);
     expect(savedIDBData).to.deep.equal([
       {
         revision: '2',
@@ -139,6 +143,7 @@ describe(`[workbox-precaching] Precache and Update`, function() {
     // Refresh the page and test that the requests are as expected
     global.__workbox.server.reset();
     await global.__workbox.webdriver.get(testingUrl);
+
     requestsMade = global.__workbox.server.getRequests();
     // Ensure the HTML page is returned from cache and not network
     expect(requestsMade['/test/workbox-precaching/static/precache-and-update/']).to.equal(undefined);
