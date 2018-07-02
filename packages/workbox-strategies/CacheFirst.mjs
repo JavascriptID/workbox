@@ -44,11 +44,13 @@ class CacheFirst {
    * @param {Object} options.fetchOptions Values passed along to the
    * [`init`](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch#Parameters)
    * of all fetch() requests made by this strategy.
+   * @param {Object} options.matchOptions [`CacheQueryOptions`](https://w3c.github.io/ServiceWorker/#dictdef-cachequeryoptions)
    */
   constructor(options = {}) {
     this._cacheName = cacheNames.getRuntimeName(options.cacheName);
     this._plugins = options.plugins || [];
     this._fetchOptions = options.fetchOptions || null;
+    this._matchOptions = options.matchOptions || null;
   }
 
   /**
@@ -111,7 +113,7 @@ class CacheFirst {
     let response = await cacheWrapper.match(
       this._cacheName,
       request,
-      null,
+      this._matchOptions,
       this._plugins
     );
 
@@ -174,7 +176,8 @@ class CacheFirst {
     const response = await fetchWrapper.fetch(
       request,
       this._fetchOptions,
-      this._plugins
+      this._plugins,
+      event ? event.preloadResponse : undefined
     );
 
     // Keep the service worker while we put the request to the cache
