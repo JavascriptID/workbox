@@ -14,16 +14,11 @@
   limitations under the License.
 */
 
-import {concatenate} from './concatenate.mjs';
-import {concatenateToResponse} from './concatenateToResponse.mjs';
-import {isSupported} from './isSupported.mjs';
-import {strategy} from './strategy.mjs';
+const objectStringify = require('stringify-object');
+const stripComments = require('strip-comments');
 
-import './_version.mjs';
-
-export {
-  concatenate,
-  concatenateToResponse,
-  isSupported,
-  strategy,
+module.exports = (obj) => {
+  return objectStringify(obj, {
+    transform: (_obj, _prop, str) => stripComments(str),
+  });
 };

@@ -30,6 +30,7 @@ describe(`[workbox-build] entry-points/generate-sw-string.js (End to End)`, func
     'modifyUrlPrefix',
     'navigateFallback',
     'navigateFallbackWhitelist',
+    'offlineGoogleAnalytics',
     'runtimeCaching',
     'skipWaiting',
     'templatedUrls',
@@ -231,6 +232,44 @@ describe(`[workbox-build] entry-points/generate-sw-string.js (End to End)`, func
         }]],
       }});
     });
+
+    it(`should use defaults when all the required parameters are present, with 'offlineGoogleAnalytics' set to true`, async function() {
+      const options = Object.assign({}, BASE_OPTIONS, {
+        offlineGoogleAnalytics: true,
+      });
+
+      const {swString, warnings} = await generateSWString(options);
+      expect(warnings).to.be.empty;
+      await validateServiceWorkerRuntime({swString, expectedMethodCalls: {
+        importScripts: [[...DEFAULT_IMPORT_SCRIPTS]],
+        suppressWarnings: [[]],
+        precacheAndRoute: [[[], {}]],
+        googleAnalyticsInitialize: [[{}]],
+      }});
+    });
+
+    it(`should use defaults when all the required parameters are present, with 'offlineGoogleAnalytics' set to a config`, async function() {
+      const options = Object.assign({}, BASE_OPTIONS, {
+        offlineGoogleAnalytics: {
+          parameterOverrides: {
+            cd1: 'offline',
+          },
+        },
+      });
+
+      const {swString, warnings} = await generateSWString(options);
+      expect(warnings).to.be.empty;
+      await validateServiceWorkerRuntime({swString, expectedMethodCalls: {
+        importScripts: [[...DEFAULT_IMPORT_SCRIPTS]],
+        suppressWarnings: [[]],
+        precacheAndRoute: [[[], {}]],
+        googleAnalyticsInitialize: [[{
+          parameterOverrides: {
+            cd1: 'offline',
+          },
+        }]],
+      }});
+    });
   });
 
   describe(`[workbox-build] behavior with 'runtimeCaching'`, function() {
@@ -379,6 +418,8 @@ describe(`[workbox-build] entry-points/generate-sw-string.js (End to End)`, func
           },
           statuses: [0, 200],
         },
+        fetchOptions: {},
+        matchOptions: {},
       };
       const runtimeCaching = [{
         urlPattern: REGEXP_URL_PATTERN,
@@ -395,6 +436,8 @@ describe(`[workbox-build] entry-points/generate-sw-string.js (End to End)`, func
           plugins: runtimeCachingOptions.plugins.concat([
             {}, {},
           ]),
+          fetchOptions: {},
+          matchOptions: {},
         }]],
         cacheableResponsePlugin: [[runtimeCachingOptions.cacheableResponse]],
         cacheExpirationPlugin: [[runtimeCachingOptions.expiration]],
