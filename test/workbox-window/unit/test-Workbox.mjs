@@ -384,7 +384,7 @@ describe(`[workbox-window] Workbox`, function() {
       expect(sw).to.equal(reg.installing);
     });
 
-    it(`resolves before updating if a SW with the same script URL is already active`, async function() {
+    it(`resolves before updating if a SW with the same script URL is already controlling`, async function() {
       const scriptURL = navigator.serviceWorker.controller.scriptURL;
       const wb = new Workbox(scriptURL);
 
@@ -396,7 +396,31 @@ describe(`[workbox-window] Workbox`, function() {
       expect(sw).to.equal(navigator.serviceWorker.controller);
     });
 
-    it(`resolves as soon as an an update is found (if no active SW exists)`, async function() {
+    it(`resolves before updating if a SW with the same script URL is already waiting to install`, async function() {
+      const scriptURL = uniq('sw-no-skip-waiting.tmp.js');
+
+      const wb1 = new Workbox(scriptURL);
+      const reg1 = await wb1.register();
+
+      await nextEvent(wb1, 'waiting');
+      expect(reg1.waiting.scriptURL).to.equal(scriptURL);
+
+      // Stub the controlling SW's scriptURL so it matches the SW that is
+      // about to be waiting. This is done to assert that if a matching
+      // controller *and* waiting SW are found at registration time, the
+      // `getSW()` method resolves to the waiting SW.
+      sandbox.stub(navigator.serviceWorker.controller, 'scriptURL')
+          .value(scriptURL);
+
+      const wb2 = new Workbox(scriptURL);
+      const reg2Promise = wb2.register();
+
+      const sw = await wb2.getSW();
+      const reg2 = await reg2Promise;
+      expect(sw).to.equal(reg2.waiting);
+    });
+
+    it(`resolves as soon as an an update is found (if not already resolved)`, async function() {
       const wb = new Workbox(uniq('sw-clients-claim.tmp.js'));
       wb.register();
 
@@ -842,6 +866,31 @@ describe(`[workbox-window] Workbox`, function() {
 
         // Assert the same method on the second instance isn't called.
         expect(externalActivated2Spy.callCount).to.equal(0);
+      });
+    });
+
+    describe(`removeEventListener()`, function() {
+      it(`will register and then unregister event listeners of a given type`, function() {
+        const eventType = 'testEventType';
+        const event = {type: eventType};
+        const eventListener1 = sandbox.stub();
+        const eventListener2 = sandbox.stub();
+
+        const wb = new Workbox(uniq('sw-clients-claim.tmp.js'));
+        wb.addEventListener(eventType, eventListener1);
+        wb.addEventListener(eventType, eventListener2);
+
+        wb.dispatchEvent(event);
+        expect(eventListener1.calledOnceWith(event)).to.be.true;
+        expect(eventListener2.calledOnceWith(event)).to.be.true;
+
+        wb.removeEventListener(eventType, eventListener2);
+        wb.dispatchEvent(event);
+
+        // The remaining stub should be called again.
+        expect(eventListener1.calledTwice).to.be.true;
+        // Make sure the removed stub was called only once.
+        expect(eventListener2.calledOnce).to.be.true;
       });
     });
   });
