@@ -42,6 +42,7 @@ module.exports = {
     },
     globals: {
       expectError: false,
+      waitUntil: false,
     },
     rules: {
       'max-len': 0,
@@ -52,12 +53,13 @@ module.exports = {
   }, {
     files: [
       'infra/testing/webdriver/executeAsyncAndCatch.js',
+      'infra/testing/webdriver/runUnitTests.js',
       'infra/utils/log-helper.js',
       'packages/workbox-core/_private/logger.mjs',
       'packages/workbox-sw/_default.mjs',
       'packages/workbox-cli/src/lib/logger.js',
       'test/workbox-window/integration/test.js',
-      'test/workbox-window/unit/test-Workbox.mjs',
+      'test/workbox-window/window/test-Workbox.mjs',
     ],
     rules: {
       'no-console': 0,
