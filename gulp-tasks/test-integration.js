@@ -70,6 +70,8 @@ const runIntegrationTestSuite = async (testPath, nodeEnv, seleniumBrowser,
     let testMatcher;
     if (testPath.includes('workbox-background-sync') ||
         testPath.includes('workbox-broadcast-update') ||
+        testPath.includes('workbox-cacheable-response') ||
+        testPath.includes('workbox-core') ||
         testPath.includes('workbox-window')) {
       testMatcher = 'test-*.js';
     } else {
