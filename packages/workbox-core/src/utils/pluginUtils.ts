@@ -9,11 +9,44 @@
 import '../_version.js';
 
 export interface WorkboxPlugin {
-  cacheDidUpdate?: Function;
+  cacheDidUpdate?: ({
+    cacheName,
+    oldResponse,
+    newResponse,
+    request,
+    event
+  }: {
+    cacheName: string,
+    oldResponse?: Response,
+    newResponse: Response,
+    request: Request,
+    event?: FetchEvent
+  }) => Promise<void>;
   cacheKeyWillBeUsed?: Function;
-  cacheWillUpdate?: Function;
-  cachedResponseWillBeUsed?: Function;
-  fetchDidFail?: ({request}: {request: Request}) => Promise<void>;
+  cacheWillUpdate?: ({
+    response
+  }: {
+    response: Response
+  }) => Promise<Response | null>;
+
+  cachedResponseWillBeUsed?: ({
+    cacheName,
+    request,
+    matchOptions,
+    cachedResponse,
+    event
+  }: {
+    cacheName: string,
+    request: Request,
+    matchOptions?: CacheQueryOptions,
+    cachedResponse?: Response,
+    event?: ExtendableEvent,
+  }) => Promise<Response | null>;
+  fetchDidFail?: ({
+    request
+  }: {
+    request: Request
+  }) => Promise<void>;
   fetchDidSucceed?: Function;
   requestWillFetch?: Function;
 }
