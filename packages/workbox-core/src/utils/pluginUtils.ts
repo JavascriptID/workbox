@@ -8,6 +8,7 @@
 
 import '../_version.js';
 
+
 export interface WorkboxPlugin {
   cacheDidUpdate?: ({
     cacheName,
@@ -24,11 +25,14 @@ export interface WorkboxPlugin {
   }) => Promise<void>;
   cacheKeyWillBeUsed?: Function;
   cacheWillUpdate?: ({
-    response
+    response,
+    request,
+    event,
   }: {
-    response: Response
-  }) => Promise<Response | null>;
-
+    response: Response,
+    request?: Request,
+    event?: ExtendableEvent,
+  }) => Promise<Response | null | undefined>;
   cachedResponseWillBeUsed?: ({
     cacheName,
     request,
@@ -41,7 +45,7 @@ export interface WorkboxPlugin {
     matchOptions?: CacheQueryOptions,
     cachedResponse?: Response,
     event?: ExtendableEvent,
-  }) => Promise<Response | null>;
+  }) => Promise<Response | null | undefined>;
   fetchDidFail?: ({
     request
   }: {
