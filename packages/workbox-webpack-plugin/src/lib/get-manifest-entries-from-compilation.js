@@ -86,7 +86,12 @@ function assetToChunkNameMapping(stats) {
  */
 function filterAssets(compilation, config) {
   const filteredAssets = new Set();
-  const stats = compilation.getStats().toJson();
+  // See https://webpack.js.org/configuration/stats/#stats
+  // We only need assets and chunkGroups here.
+  const stats = compilation.getStats().toJson({
+    assets: true,
+    chunkGroups: true,
+  });
 
   const assetNameToChunkNames = assetToChunkNameMapping(stats);
 
@@ -173,12 +178,13 @@ module.exports = (compilation, config) => {
   // somewhere, but... webpack doesn't offer info-level logs?
   // https://github.com/webpack/webpack/issues/3996
   const {manifestEntries, warnings} = transformManifest({
+    fileDetails,
+    additionalManifestEntries: config.additionalManifestEntries,
     dontCacheBustURLsMatching: config.dontCacheBustURLsMatching,
     manifestTransforms: config.manifestTransforms,
     maximumFileSizeToCacheInBytes: config.maximumFileSizeToCacheInBytes,
     modifyURLPrefix: config.modifyURLPrefix,
     transformParam: compilation,
-    fileDetails,
   });
 
   compilation.warnings = compilation.warnings.concat(warnings || []);

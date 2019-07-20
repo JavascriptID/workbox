@@ -86,6 +86,7 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
 
           await validateServiceWorkerRuntime({
             swFile, expectedMethodCalls: {
+              importScripts: [],
               precacheAndRoute: [[[
                 {
                   revision: '0fae6a991467bd40263a3ba8cd82835d',
@@ -93,6 +94,125 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
                 }, {
                   revision: '0fae6a991467bd40263a3ba8cd82835d',
                   url: 'entry2-aa21f43434f29ed0c946.js',
+                },
+              ], {}]],
+            },
+          });
+
+          done();
+        } catch (error) {
+          done(error);
+        }
+      });
+    });
+
+    it(`should work when called with importScriptsViaChunks`, function(done) {
+      const outputDir = tempy.directory();
+      const config = {
+        mode: 'production',
+        entry: {
+          main: path.join(SRC_DIR, WEBPACK_ENTRY_FILENAME),
+          imported: path.join(SRC_DIR, WEBPACK_ENTRY_FILENAME),
+        },
+        output: {
+          filename: '[name]-[chunkhash].js',
+          path: outputDir,
+        },
+        plugins: [
+          new GenerateSW({
+            importScriptsViaChunks: [
+              'imported',
+              'INVALID_CHUNK_NAME',
+            ],
+          }),
+        ],
+      };
+
+      const compiler = webpack(config);
+      compiler.run(async (webpackError, stats) => {
+        const swFile = path.join(outputDir, 'service-worker.js');
+        try {
+          const statsJson = stats.toJson('verbose');
+          expect(webpackError).not.to.exist;
+          expect(statsJson.errors).to.be.empty;
+          // There should be a warning logged, due to INVALID_CHUNK_NAME.
+          expect(statsJson.warnings).to.have.length(1);
+
+          const files = await globby(outputDir);
+          expect(files).to.have.length(4);
+
+          await validateServiceWorkerRuntime({
+            swFile, expectedMethodCalls: {
+              importScripts: [
+                ['imported-1f6b183815996bd3f526.js'],
+              ],
+              // imported-[chunkhash].js should *not* be included.
+              precacheAndRoute: [[[{
+                revision: '0fae6a991467bd40263a3ba8cd82835d',
+                url: 'main-01a6ea3dea62d17888bb.js',
+              }], {}]],
+            },
+          });
+
+          done();
+        } catch (error) {
+          done(error);
+        }
+      });
+    });
+
+    it(`should work when called with additionalManifestEntries`, function(done) {
+      const outputDir = tempy.directory();
+      const config = {
+        mode: 'production',
+        entry: {
+          entry1: path.join(SRC_DIR, WEBPACK_ENTRY_FILENAME),
+          entry2: path.join(SRC_DIR, WEBPACK_ENTRY_FILENAME),
+        },
+        output: {
+          filename: '[name]-[chunkhash].js',
+          path: outputDir,
+        },
+        plugins: [
+          new GenerateSW({
+            additionalManifestEntries: [
+              '/one',
+              {url: '/two', revision: null},
+              {url: '/three', revision: '333'},
+            ],
+          }),
+        ],
+      };
+
+      const compiler = webpack(config);
+      compiler.run(async (webpackError, stats) => {
+        const swFile = path.join(outputDir, 'service-worker.js');
+        try {
+          const statsJson = stats.toJson();
+          expect(webpackError).not.to.exist;
+          expect(statsJson.errors).to.be.empty;
+          // The string additionalManifestEntries entry should lead to one warning.
+          expect(statsJson.warnings).to.have.length(1);
+
+          const files = await globby(outputDir);
+          expect(files).to.have.length(4);
+
+          await validateServiceWorkerRuntime({
+            swFile, expectedMethodCalls: {
+              importScripts: [],
+              precacheAndRoute: [[[
+                {
+                  revision: '0fae6a991467bd40263a3ba8cd82835d',
+                  url: 'entry1-43ba396bf52f8419e349.js',
+                }, {
+                  revision: '0fae6a991467bd40263a3ba8cd82835d',
+                  url: 'entry2-aa21f43434f29ed0c946.js',
+                }, '/one', {
+                  revision: '333',
+                  url: '/three',
+                }, {
+                  revision: null,
+                  url: '/two',
                 },
               ], {}]],
             },
@@ -135,6 +255,7 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
           expect(files).to.have.length(5);
 
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
+            importScripts: [],
             precacheAndRoute: [[[
               {
                 revision: '0fae6a991467bd40263a3ba8cd82835d',
@@ -187,6 +308,7 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
           expect(files).to.have.length(4);
 
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
+            importScripts: [],
             precacheAndRoute: [[[
               {
                 revision: '112b1ad19c141f739a7ef2b803e83a6d',
@@ -235,6 +357,7 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
           expect(files).to.have.length(5);
 
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
+            importScripts: [],
             precacheAndRoute: [[[
               {
                 revision: '0fae6a991467bd40263a3ba8cd82835d',
@@ -284,6 +407,7 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
           expect(files).to.have.length(5);
 
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
+            importScripts: [],
             precacheAndRoute: [[[
               {
                 revision: '0fae6a991467bd40263a3ba8cd82835d',
@@ -329,6 +453,7 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
           expect(files).to.have.length(5);
 
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
+            importScripts: [],
             precacheAndRoute: [[[
               {
                 revision: '0fae6a991467bd40263a3ba8cd82835d',
@@ -381,6 +506,7 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
 
           await validateServiceWorkerRuntime({
             swFile, expectedMethodCalls: {
+              importScripts: [],
               precacheAndRoute: [[[
                 {
                   revision: '452b0a9f3978190f4c77997ab23473db',
@@ -700,6 +826,7 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
 
           await validateServiceWorkerRuntime({
             swFile, expectedMethodCalls: {
+              importScripts: [],
               precacheAndRoute: [[[
                 {
                   revision: '0fae6a991467bd40263a3ba8cd82835d',
@@ -757,6 +884,7 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
           expect(files).to.have.length(12);
 
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
+            importScripts: [],
             precacheAndRoute: [[[
               {
                 revision: '0fae6a991467bd40263a3ba8cd82835d',
@@ -834,6 +962,7 @@ describe(`[workbox-webpack-plugin] GenerateSW (End to End)`, function() {
           expect(files).to.have.length(3);
 
           await validateServiceWorkerRuntime({swFile, expectedMethodCalls: {
+            importScripts: [],
             precacheAndRoute: [[[
               {
                 revision: 'c00d58015497c84d6fa4eaa9ee31678d',

@@ -12,6 +12,11 @@ import {precache} from './precache.js';
 import {PrecacheEntry} from './_types.js';
 import './_version.js';
 
+declare global {
+  interface WorkerGlobalScope {
+    __WB_MANIFEST: Array<PrecacheEntry|string>;
+  }
+}
 
 /**
  * This method will add entries to the precache list and add a route to
@@ -22,13 +27,13 @@ import './_version.js';
  * [addRoute()]{@link module:workbox-precaching.addRoute} in a single call.
  *
  * @param {Array<Object|string>} entries Array of entries to precache.
- * @param {Object} options See
+ * @param {Object} [options] See
  * [addRoute() options]{@link module:workbox-precaching.addRoute}.
  *
  * @alias workbox.precaching.precacheAndRoute
  */
 export const precacheAndRoute =
-    (entries: Array<PrecacheEntry|string>, options: FetchListenerOptions) => {
+    (entries: Array<PrecacheEntry|string>, options?: FetchListenerOptions) => {
   precache(entries);
   addRoute(options);
 };

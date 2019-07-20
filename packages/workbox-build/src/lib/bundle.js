@@ -10,7 +10,7 @@ const {rollup} = require('rollup');
 const {terser} = require('rollup-plugin-terser');
 const {writeFile} = require('fs-extra');
 const babel = require('rollup-plugin-babel');
-const loadz0r = require('rollup-plugin-loadz0r');
+const omt = require('rollup-plugin-off-main-thread');
 const path = require('path');
 const presetEnv = require('@babel/preset-env');
 const replace = require('rollup-plugin-replace');
@@ -34,6 +34,10 @@ module.exports = async ({
     resolve(),
     replace({'process.env.NODE_ENV': JSON.stringify(mode)}),
     babel({
+      // Disable the logic that checks for local Babel config files:
+      // https://github.com/GoogleChrome/workbox/issues/2111
+      babelrc: false,
+      configFile: false,
       presets: [[presetEnv, {
         targets: {
           browsers: babelPresetEnvTargets,
@@ -62,9 +66,7 @@ module.exports = async ({
   // Rollup will inline the runtime by default. If we don't want that, we need
   // to add in some additional config.
   if (!inlineWorkboxRuntime) {
-    rollupConfig.plugins.unshift(loadz0r({
-      loader: require('./loadz0r-loader'),
-    }));
+    rollupConfig.plugins.unshift(omt());
     rollupConfig.manualChunks = (id) => {
       return id.includes('workbox') ? 'workbox' : undefined;
     };
