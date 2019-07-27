@@ -117,7 +117,7 @@ export const messages : MessageMap = {
     }
 
     return `You must provide a name containing at least one character for ` +
-      `setCacheDeatils({${cacheNameId}: '...'}). Received a value of ` +
+      `setCacheDetails({${cacheNameId}: '...'}). Received a value of ` +
       `'${JSON.stringify(value)}'`;
   },
 
@@ -255,5 +255,16 @@ export const messages : MessageMap = {
   'bad-precaching-response': ({url, status}) => {
     return `The precaching request for '${url}' failed with an HTTP ` +
       `status of ${status}.`;
+  },
+
+  'non-precached-url': ({url}) => {
+    return `createHandlerForURL('${url}') was called, but that URL is not ` +
+      `precached. Please pass in a URL that is precached instead.`;
+  },
+
+  'add-to-cache-list-conflicting-integrities': ({url}) => {
+    return `Two of the entries passed to ` +
+      `'workbox-precaching.PrecacheController.addToCacheList()' had the URL ` +
+      `${url} with different integrity values. Please remove one of them.`;
   },
 };
