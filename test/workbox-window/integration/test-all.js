@@ -36,7 +36,11 @@ describe(`[workbox-window] Workbox`, function() {
   });
 
   afterEach(async function() {
-    await unregisterAllSWs();
+    try {
+      await unregisterAllSWs();
+    } catch (error) {
+      // no-op
+    }
   });
 
   describe('register', () => {
@@ -147,8 +151,7 @@ describe(`[workbox-window] Workbox`, function() {
       expect(result.controllingSpyCallCount).to.equal(1);
     });
 
-    // TODO: https://github.com/GoogleChrome/workbox/issues/2150
-    it.skip(`reports all events for an external SW registration`, async function() {
+    it(`reports all events for an external SW registration`, async function() {
       const firstTab = await getLastWindowHandle();
 
       await executeAsyncAndCatch(async (cb) => {
@@ -227,43 +230,6 @@ describe(`[workbox-window] Workbox`, function() {
 
       // The waiting phase should have been skipped.
       expect(result.waitingSpyCallCount).to.equal(0);
-    });
-
-    it(`notifies a controlling SW that the window is ready`, async function() {
-      // Register a SW and wait until it's controlling the page since
-      // ready messages are only sent to controlling SWs with matching URLs.
-      await executeAsyncAndCatch(async (cb) => {
-        try {
-          const wb = new Workbox('sw-window-ready.js');
-          await wb.register();
-
-          wb.addEventListener('controlling', () => cb());
-        } catch (error) {
-          cb({error: error.stack});
-        }
-      });
-
-      const result = await executeAsyncAndCatch(async (cb) => {
-        try {
-          const readyMessageReceived = new Promise((resolve) => {
-            navigator.serviceWorker.addEventListener('message', (event) => {
-              if (event.data.type === 'sw:message:ready') {
-                resolve();
-              }
-            });
-          });
-
-          const wb = new Workbox('sw-window-ready.js');
-          wb.register();
-
-          await readyMessageReceived;
-          cb(true);
-        } catch (error) {
-          cb({error: error.stack});
-        }
-      });
-
-      expect(result).to.equal(true);
     });
   });
 });
