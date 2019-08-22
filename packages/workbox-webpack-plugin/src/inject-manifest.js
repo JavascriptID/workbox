@@ -9,9 +9,9 @@
 const {ConcatSource} = require('webpack-sources');
 const SingleEntryPlugin = require('webpack/lib/SingleEntryPlugin');
 const upath = require('upath');
-const validate = require('workbox-build/build/entry-points/options/validate');
+const validate = require('workbox-build/build/lib/validate-options');
 const webpackInjectManifestSchema = require(
-    'workbox-build/build/entry-points/options/webpack-inject-manifest-schema');
+    'workbox-build/build/options/schema/webpack-inject-manifest');
 
 const getManifestEntriesFromCompilation =
   require('./lib/get-manifest-entries-from-compilation');
@@ -152,7 +152,7 @@ class InjectManifest {
     const swAsset = compilation.assets[config.swDest];
     delete compilation.assets[config.swDest];
 
-    const manifestEntries = getManifestEntriesFromCompilation(
+    const manifestEntries = await getManifestEntriesFromCompilation(
         compilation, config);
 
     const manifestDeclaration = stringifyManifest(manifestEntries,
