@@ -119,38 +119,6 @@ describe(`[workbox-build] inject-manifest.js (End to End)`, function() {
       }
     });
 
-    it(`should throw the expected error when 'swSrc' and 'swDest' are the same path`, async function() {
-      const path = 'same.js';
-      const options = Object.assign({}, BASE_OPTIONS, {
-        swSrc: path,
-        swDest: path,
-      });
-
-      try {
-        await injectManifest(options);
-        throw new Error('Unexpected success.');
-      } catch (error) {
-        expect(error.message).to.have.string(errors['same-src-and-dest']);
-      }
-    });
-
-    it(`should throw the expected error when a relative 'swSrc' and absolute 'swDest' are the same path`, async function() {
-      const swSrc = 'same.js';
-      const swDest = upath.join(process.cwd(), 'same.js');
-
-      const options = Object.assign({}, BASE_OPTIONS, {
-        swSrc,
-        swDest,
-      });
-
-      try {
-        await injectManifest(options);
-        throw new Error('Unexpected success.');
-      } catch (error) {
-        expect(error.message).to.have.string(errors['same-src-and-dest']);
-      }
-    });
-
     it(`should throw the expected error when there is no match for 'injectionPoint'`, async function() {
       const options = Object.assign({}, BASE_OPTIONS, {
         swSrc: upath.join(SW_SRC_DIR, 'bad-no-injection.js'),
@@ -161,6 +129,21 @@ describe(`[workbox-build] inject-manifest.js (End to End)`, function() {
         throw new Error('Unexpected success.');
       } catch (error) {
         expect(error.message).to.have.string(errors['injection-point-not-found']);
+      }
+    });
+
+    it(`should throw the expected error when there is no match for 'injectionPoint' and 'swSrc' and 'swDest' are the same`, async function() {
+      const swFile = upath.join(SW_SRC_DIR, 'bad-no-injection.js');
+      const options = Object.assign({}, BASE_OPTIONS, {
+        swSrc: swFile,
+        swDest: swFile,
+      });
+
+      try {
+        await injectManifest(options);
+        throw new Error('Unexpected success.');
+      } catch (error) {
+        expect(error.message).to.have.string(errors['same-src-and-dest']);
       }
     });
 
@@ -385,6 +368,32 @@ describe(`[workbox-build] inject-manifest.js (End to End)`, function() {
           }]]],
         },
       });
+    });
+  });
+
+  describe(`[workbox-webpack-plugin] Sourcemap manipulation`, function() {
+    it(`should update the sourcemap to account for manifest injection`, async function() {
+      const outputDir = tempy.directory();
+      const swSrc = upath.join(SW_SRC_DIR, 'basic-with-sourcemap.js.nolint');
+      const swDest = upath.join(outputDir, 'basic-with-sourcemap.js');
+      const sourcemapDest = upath.join(outputDir, 'basic-with-sourcemap.js.map');
+      const options = Object.assign({}, BASE_OPTIONS, {
+        swDest,
+        swSrc,
+      });
+
+      const {count, filePaths, size, warnings} = await injectManifest(options);
+      expect(warnings).to.be.empty;
+      expect(count).to.eql(6);
+      expect(size).to.eql(2604);
+      expect(filePaths).to.have.members([swDest, sourcemapDest]);
+
+      const actualSourcemap = await fse.readJSON(sourcemapDest);
+      const expectedSourcemap = await fse.readJSON(
+          upath.join(SW_SRC_DIR, '..', 'expected-source-map.js.map'));
+      expect(actualSourcemap).to.eql(expectedSourcemap);
+
+      // We can't validate the SW file contents.
     });
   });
 
