@@ -34,9 +34,15 @@ module.exports = {
   plugins: [
     'jsdoc',
   ],
+  settings: {
+    jsdoc: {
+      preferredTypes: {
+        object: 'Object',
+      },
+    },
+  },
   overrides: [{
     files: ['test/**/*.{js,mjs}'],
-    parser: 'babel-eslint',
     env: {
       mocha: true,
     },
@@ -132,5 +138,14 @@ module.exports = {
     rules: {
       'header/header': [2, 'block', {pattern: 'Copyright \\d{4} Google LLC'}],
     },
+  }, {
+    files: [
+      'demos/**/*.js',
+    ],
+    rules: {
+      'no-console': 0,
+    },
   }],
+  // eslint can't parse some of these files.
+  ignorePatterns: ['**/wasm-project/**'],
 };
