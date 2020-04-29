@@ -6,20 +6,24 @@
   https://opensource.org/licenses/MIT.
 */
 
+const chai = require('chai');
+const chaiMatchPattern = require('chai-match-pattern');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const WorkerPlugin = require('worker-plugin');
-const expect = require('chai').expect;
 const fse = require('fs-extra');
 const globby = require('globby');
-const upath = require('upath');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const tempy = require('tempy');
+const upath = require('upath');
 const webpack = require('webpack');
+const WorkerPlugin = require('worker-plugin');
 
 const CreateWebpackAssetPlugin = require('../../../infra/testing/create-webpack-asset-plugin');
 const validateServiceWorkerRuntime = require('../../../infra/testing/validator/service-worker-runtime');
 const webpackBuildCheck = require('../../../infra/testing/webpack-build-check');
 const {InjectManifest} = require('../../../packages/workbox-webpack-plugin/src/index');
+
+chai.use(chaiMatchPattern);
+const {expect} = chai;
 
 describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
   const WEBPACK_ENTRY_FILENAME = 'webpackEntry.js';
@@ -87,7 +91,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(3);
 
           await validateServiceWorkerRuntime({
@@ -96,11 +100,11 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             expectedMethodCalls: {
               precacheAndRoute: [[[
                 {
-                  revision: '32_CHARACTER_HASH',
-                  url: 'entry1-20_CHARACTER_HASH.js',
+                  revision: /^[0-9a-f]{32}$/,
+                  url: /^entry1-[0-9a-f]{20}\.js$/,
                 }, {
-                  revision: '32_CHARACTER_HASH',
-                  url: 'entry2-20_CHARACTER_HASH.js',
+                  revision: /^[0-9a-f]{32}$/,
+                  url: /^entry2-[0-9a-f]{20}\.js$/,
                 },
               ], {}]],
             },
@@ -141,7 +145,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(4);
 
           await validateServiceWorkerRuntime({
@@ -150,11 +154,11 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             expectedMethodCalls: {
               precacheAndRoute: [[[
                 {
-                  revision: '32_CHARACTER_HASH',
-                  url: 'entry1-20_CHARACTER_HASH.js',
+                  revision: /^[0-9a-f]{32}$/,
+                  url: /^entry1-[0-9a-f]{20}\.js$/,
                 }, {
-                  revision: '32_CHARACTER_HASH',
-                  url: 'entry2-20_CHARACTER_HASH.js',
+                  revision: /^[0-9a-f]{32}$/,
+                  url: /^entry2-[0-9a-f]{20}\.js$/,
                 },
               ], {}]],
             },
@@ -199,7 +203,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(3);
 
           await validateServiceWorkerRuntime({
@@ -208,10 +212,10 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             expectedMethodCalls: {
               precacheAndRoute: [[[
                 {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'main.js',
                 }, {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'vendors~main.js',
                 },
               ], {}]],
@@ -253,7 +257,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(4);
 
           await validateServiceWorkerRuntime({
@@ -262,11 +266,11 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             expectedMethodCalls: {
               precacheAndRoute: [[[
                 {
-                  revision: '32_CHARACTER_HASH',
-                  url: 'entry1-20_CHARACTER_HASH.js',
+                  revision: /^[0-9a-f]{32}$/,
+                  url: /^entry1-[0-9a-f]{20}\.js$/,
                 }, {
-                  revision: '32_CHARACTER_HASH',
-                  url: 'entry2-20_CHARACTER_HASH.js',
+                  revision: /^[0-9a-f]{32}$/,
+                  url: /^entry2-[0-9a-f]{20}\.js$/,
                 },
               ], {}]],
             },
@@ -308,7 +312,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(4);
 
           await validateServiceWorkerRuntime({
@@ -317,8 +321,8 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             expectedMethodCalls: {
               precacheAndRoute: [[[
                 {
-                  revision: '32_CHARACTER_HASH',
-                  url: 'entry1-20_CHARACTER_HASH.js',
+                  revision: /^[0-9a-f]{32}$/,
+                  url: /^entry1-[0-9a-f]{20}\.js$/,
                 },
               ], {}]],
             },
@@ -360,7 +364,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(4);
 
           await validateServiceWorkerRuntime({
@@ -369,13 +373,13 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             expectedMethodCalls: {
               precacheAndRoute: [[[
                 {
-                  revision: '32_CHARACTER_HASH',
-                  url: 'entry1-20_CHARACTER_HASH.js',
+                  revision: /^[0-9a-f]{32}$/,
+                  url: /^entry1-[0-9a-f]{20}\.js$/,
                 }, {
-                  revision: '32_CHARACTER_HASH',
-                  url: 'entry2-20_CHARACTER_HASH.js',
+                  revision: /^[0-9a-f]{32}$/,
+                  url: /^entry2-[0-9a-f]{20}\.js$/,
                 }, {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'index.html',
                 },
               ], {}]],
@@ -418,7 +422,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(10);
 
           await validateServiceWorkerRuntime({
@@ -427,39 +431,39 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             expectedMethodCalls: {
               precacheAndRoute: [[[
                 {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'images/example-jpeg.jpg',
                 },
                 {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'images/web-fundamentals-icon192x192.png',
                 },
                 {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'index.html',
                 },
                 {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'page-1.html',
                 },
                 {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'page-2.html',
                 },
                 {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'splitChunksEntry.js',
                 },
                 {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'styles/stylesheet-1.css',
                 },
                 {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'styles/stylesheet-2.css',
                 },
                 {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'webpackEntry.js',
                 },
               ], {}]],
@@ -499,7 +503,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(4);
 
           const expectedSourcemap = await fse.readJSON(
@@ -517,7 +521,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             entryPoint: 'injectManifest',
             expectedMethodCalls: {
               precacheAndRoute: [[[{
-                revision: '32_CHARACTER_HASH',
+                revision: /^[0-9a-f]{32}$/,
                 url: 'webpackEntry.js',
               }], {}]],
             },
@@ -557,7 +561,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(4);
 
           const expectedSourcemap = await fse.readJSON(
@@ -576,7 +580,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             entryPoint: 'injectManifest',
             expectedMethodCalls: {
               precacheAndRoute: [[[{
-                revision: '32_CHARACTER_HASH',
+                revision: /^[0-9a-f]{32}$/,
                 url: 'webpackEntry.js',
               }], {}]],
             },
@@ -615,7 +619,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(2);
 
           await validateServiceWorkerRuntime({
@@ -623,7 +627,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             entryPoint: 'injectManifest',
             expectedMethodCalls: {
               precacheAndRoute: [[[{
-                revision: '32_CHARACTER_HASH',
+                revision: /^[0-9a-f]{32}$/,
                 url: 'webpackEntry.js',
               }], {}]],
             },
@@ -665,7 +669,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(7);
 
           await validateServiceWorkerRuntime({
@@ -673,13 +677,13 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             entryPoint: 'injectManifest',
             expectedMethodCalls: {
               precacheAndRoute: [[[{
-                revision: '32_CHARACTER_HASH',
+                revision: /^[0-9a-f]{32}$/,
                 url: 'manifest.json',
               }, {
-                revision: '32_CHARACTER_HASH',
+                revision: /^[0-9a-f]{32}$/,
                 url: 'not-ignored.js',
               }, {
-                revision: '32_CHARACTER_HASH',
+                revision: /^[0-9a-f]{32}$/,
                 url: 'webpackEntry.js',
               }], {}]],
             },
@@ -717,7 +721,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(4);
 
           await validateServiceWorkerRuntime({
@@ -725,13 +729,13 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             entryPoint: 'injectManifest',
             expectedMethodCalls: {
               precacheAndRoute: [[[{
-                revision: '32_CHARACTER_HASH',
+                revision: /^[0-9a-f]{32}$/,
                 url: 'service-worker.js.map',
               }, {
-                revision: '32_CHARACTER_HASH',
+                revision: /^[0-9a-f]{32}$/,
                 url: 'webpackEntry.js',
               }, {
-                revision: '32_CHARACTER_HASH',
+                revision: /^[0-9a-f]{32}$/,
                 url: 'webpackEntry.js.map',
               }], {}]],
             },
@@ -772,7 +776,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(10);
 
           await validateServiceWorkerRuntime({
@@ -780,13 +784,13 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             entryPoint: 'injectManifest',
             expectedMethodCalls: {
               precacheAndRoute: [[[{
-                revision: '32_CHARACTER_HASH',
+                revision: /^[0-9a-f]{32}$/,
                 url: 'index.html',
               }, {
-                revision: '32_CHARACTER_HASH',
+                revision: /^[0-9a-f]{32}$/,
                 url: 'page-1.html',
               }, {
-                revision: '32_CHARACTER_HASH',
+                revision: /^[0-9a-f]{32}$/,
                 url: 'page-2.html',
               }], {}]],
             },
@@ -828,7 +832,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(10);
 
           await validateServiceWorkerRuntime({
@@ -836,10 +840,10 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             entryPoint: 'injectManifest',
             expectedMethodCalls: {
               precacheAndRoute: [[[{
-                revision: '32_CHARACTER_HASH',
+                revision: /^[0-9a-f]{32}$/,
                 url: 'page-1.html',
               }, {
-                revision: '32_CHARACTER_HASH',
+                revision: /^[0-9a-f]{32}$/,
                 url: 'page-2.html',
               }], {}]],
             },
@@ -877,7 +881,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(2);
 
           await validateServiceWorkerRuntime({
@@ -885,7 +889,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             entryPoint: 'injectManifest',
             expectedMethodCalls: {
               precacheAndRoute: [[[{
-                revision: '32_CHARACTER_HASH',
+                revision: /^[0-9a-f]{32}$/,
                 url: 'webpackEntry.js',
               }], {}]],
             },
@@ -931,7 +935,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             `The chunk 'doesNotExist' was provided in your Workbox chunks config, but was not found in the compilation.`,
           ]);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(2);
 
           await validateServiceWorkerRuntime({
@@ -940,8 +944,8 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             expectedMethodCalls: {
               precacheAndRoute: [[[
                 {
-                  revision: '32_CHARACTER_HASH',
-                  url: 'entry1-20_CHARACTER_HASH.js',
+                  revision: /^[0-9a-f]{32}$/,
+                  url: /^entry1-[0-9a-f]{20}\.js$/,
                 },
               ], {}]],
             },
@@ -993,7 +997,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
 
           const swFile = upath.join(outputDir, 'service-worker.js');
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(11);
 
           await validateServiceWorkerRuntime({
@@ -1002,39 +1006,39 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             expectedMethodCalls: {
               precacheAndRoute: [[[
                 {
-                  revision: '32_CHARACTER_HASH',
-                  url: 'entry1-20_CHARACTER_HASH.js',
+                  revision: /^[0-9a-f]{32}$/,
+                  url: /^entry1-[0-9a-f]{20}\.js$/,
                 },
                 {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'images/web-fundamentals-icon192x192.png',
                 },
                 {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'index.html',
                 },
                 {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'page-1.html',
                 },
                 {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'page-2.html',
                 },
                 {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'splitChunksEntry.js',
                 },
                 {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'styles/stylesheet-1.css',
                 },
                 {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'styles/stylesheet-2.css',
                 },
                 {
-                  revision: '32_CHARACTER_HASH',
+                  revision: /^[0-9a-f]{32}$/,
                   url: 'webpackEntry.js',
                 },
               ], {}]],
@@ -1077,7 +1081,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(2);
 
           await validateServiceWorkerRuntime({
@@ -1086,8 +1090,8 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             expectedMethodCalls: {
               precacheAndRoute: [[[
                 {
-                  revision: '32_CHARACTER_HASH',
-                  url: '/testing/entry1-20_CHARACTER_HASH.js',
+                  revision: /^[0-9a-f]{32}$/,
+                  url: /^\/testing\/entry1-[0-9a-f]{20}\.js$/,
                 },
               ], {}]],
             },
@@ -1134,7 +1138,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
           // different environments. Instead of hardcoding hash checks, just
           // confirm that we output the expected number of files, which will
           // only be true if the build was successful.
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(5);
 
           done();
@@ -1170,7 +1174,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(2);
 
           await validateServiceWorkerRuntime({
@@ -1178,7 +1182,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             entryPoint: 'injectManifest',
             expectedMethodCalls: {
               precacheAndRoute: [[[{
-                url: 'main.20_CHARACTER_HASH.js',
+                url: /^main\.[0-9a-f]{20}\.js$/,
                 revision: null,
               }], {}]],
             },
@@ -1218,7 +1222,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(2);
 
           await validateServiceWorkerRuntime({
@@ -1226,8 +1230,59 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             entryPoint: 'injectManifest',
             expectedMethodCalls: {
               precacheAndRoute: [[[{
-                revision: '32_CHARACTER_HASH',
-                url: 'https://example.org/main.20_CHARACTER_HASH.js',
+                revision: /^[0-9a-f]{32}$/,
+                url: /^https:\/\/example\.org\/main\.[0-9a-f]{20}\.js/,
+              }], {}]],
+            },
+          });
+
+          done();
+        } catch (error) {
+          done(error);
+        }
+      });
+    });
+
+    it(`should use webpackCompilationPlugins with DefinePlugin`, function(done) {
+      const prefix = 'replaced-by-define-plugin';
+      const swSrc = upath.join(__dirname, '..', 'static', 'sw-src-define-plugin.js');
+      const outputDir = tempy.directory();
+      const config = {
+        mode: 'production',
+        entry: upath.join(SRC_DIR, WEBPACK_ENTRY_FILENAME),
+        output: {
+          filename: '[name].[hash:20].js',
+          path: outputDir,
+        },
+        plugins: [
+          new InjectManifest({
+            swSrc,
+            swDest: 'service-worker.js',
+            webpackCompilationPlugins: [
+              new webpack.DefinePlugin({
+                __PREFIX__: JSON.stringify(prefix),
+              }),
+            ],
+          }),
+        ],
+      };
+
+      const compiler = webpack(config);
+      compiler.run(async (webpackError, stats) => {
+        const swFile = upath.join(outputDir, 'service-worker.js');
+        try {
+          webpackBuildCheck(webpackError, stats);
+
+          const files = await globby('**', {cwd: outputDir});
+          expect(files).to.have.length(2);
+          await validateServiceWorkerRuntime({
+            swFile,
+            entryPoint: 'injectManifest',
+            expectedMethodCalls: {
+              setCacheNameDetails: [[{prefix}]],
+              precacheAndRoute: [[[{
+                revision: /^[0-9a-f]{32}$/,
+                url: /^main\.[0-9a-f]{20}\.js$/,
               }], {}]],
             },
           });
@@ -1284,7 +1339,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
           expect(statsJson.errors).to.be.empty;
           expect(statsJson.warnings).to.have.members([warningMessage]);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(2);
 
           await validateServiceWorkerRuntime({
@@ -1293,7 +1348,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             expectedMethodCalls: {
               precacheAndRoute: [[[{
                 revision: null,
-                url: 'main.20_CHARACTER_HASH.js-suffix',
+                url: /^main.[0-9a-f]{20}\.js-suffix$/,
               }], {}]],
             },
           });
@@ -1378,7 +1433,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
                 expect(statsJson.warnings).to.have.length(0);
               }
 
-              const files = await globby(outputDir);
+              const files = await globby('**', {cwd: outputDir});
               expect(files).to.have.length(2);
 
               resolve();
@@ -1424,7 +1479,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(3);
 
           await validateServiceWorkerRuntime({
@@ -1432,8 +1487,8 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             entryPoint: 'injectManifest',
             expectedMethodCalls: {
               precacheAndRoute: [[[{
-                revision: '32_CHARACTER_HASH',
-                url: 'main.20_CHARACTER_HASH.js',
+                revision: /^[0-9a-f]{32}$/,
+                url: /^main\.[0-9a-f]{20}\.js$/,
               }], {}]],
             },
           });
@@ -1443,8 +1498,8 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             entryPoint: 'injectManifest',
             expectedMethodCalls: {
               precacheAndRoute: [[[{
-                revision: '32_CHARACTER_HASH',
-                url: 'main.20_CHARACTER_HASH.js',
+                revision: /^[0-9a-f]{32}$/,
+                url: /^main\.[0-9a-f]{20}\.js$/,
               }], {}]],
             },
           });
@@ -1483,7 +1538,7 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
         try {
           webpackBuildCheck(webpackError, stats);
 
-          const files = await globby(outputDir);
+          const files = await globby('**', {cwd: outputDir});
           expect(files).to.have.length(2);
 
           await validateServiceWorkerRuntime({
@@ -1491,8 +1546,8 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
             entryPoint: 'injectManifest',
             expectedMethodCalls: {
               precacheAndRoute: [[[{
-                revision: '32_CHARACTER_HASH',
-                url: 'main.20_CHARACTER_HASH.js',
+                revision: /^[0-9a-f]{32}$/,
+                url: /^main\.[0-9a-f]{20}\.js$/,
               }], {}]],
             },
           });
@@ -1502,6 +1557,121 @@ describe(`[workbox-webpack-plugin] InjectManifest (End to End)`, function() {
           done(error);
         }
       });
+    });
+  });
+
+  describe(`[workbox-webpack-plugin] Non-compilation scenarios`, function() {
+    it(`should error when compileSrc is false and webpackCompilationPlugins is used`, function(done) {
+      const outputDir = tempy.directory();
+
+      const config = {
+        mode: 'production',
+        entry: upath.join(SRC_DIR, WEBPACK_ENTRY_FILENAME),
+        output: {
+          filename: '[name].[hash:20].js',
+          path: outputDir,
+        },
+        plugins: [
+          new InjectManifest({
+            compileSrc: false,
+            swDest: 'injected-manifest.json',
+            swSrc: upath.join(__dirname, '..', 'static', 'injected-manifest.json'),
+            webpackCompilationPlugins: [{}],
+          }),
+        ],
+      };
+
+      const compiler = webpack(config);
+      compiler.run((webpackError, stats) => {
+        expect(webpackError).not.to.exist;
+        const statsJson = stats.toJson();
+        expect(statsJson.warnings).to.be.empty;
+        expect(statsJson.errors).to.have.members([
+          `Please check your InjectManifest plugin configuration:\nchild "webpackCompilationPlugins" fails because ["webpackCompilationPlugins" is not allowed]`,
+        ]);
+
+        done();
+      });
+    });
+
+    it(`should support injecting a manifest into a JSON file`, function(done) {
+      const outputDir = tempy.directory();
+
+      const config = {
+        mode: 'production',
+        entry: upath.join(SRC_DIR, WEBPACK_ENTRY_FILENAME),
+        output: {
+          filename: '[name].[hash:20].js',
+          path: outputDir,
+        },
+        plugins: [
+          new InjectManifest({
+            compileSrc: false,
+            swDest: 'injected-manifest.json',
+            swSrc: upath.join(__dirname, '..', 'static', 'injected-manifest.json'),
+          }),
+        ],
+      };
+
+      const compiler = webpack(config);
+      compiler.run(async (webpackError, stats) => {
+        try {
+          webpackBuildCheck(webpackError, stats);
+
+          const files = await globby('**', {cwd: outputDir});
+          expect(files).to.have.length(2);
+
+          const manifest = await fse.readJSON(upath.join(outputDir, 'injected-manifest.json'));
+          expect(manifest).to.matchPattern([{
+            revision: /^[0-9a-f]{32}$/,
+            url: /^main\.[0-9a-f]{20}\.js$/,
+          }]);
+
+          done();
+        } catch (error) {
+          done(error);
+        }
+      });
+    });
+  });
+
+  it(`should support injecting a manifest into a CJS module`, function(done) {
+    const outputDir = tempy.directory();
+
+    const config = {
+      mode: 'production',
+      entry: upath.join(SRC_DIR, WEBPACK_ENTRY_FILENAME),
+      output: {
+        filename: '[name].[hash:20].js',
+        path: outputDir,
+      },
+      plugins: [
+        new InjectManifest({
+          compileSrc: false,
+          swDest: 'injected-manifest.js',
+          swSrc: upath.join(__dirname, '..', 'static', 'injected-manifest.js'),
+        }),
+      ],
+    };
+
+    const compiler = webpack(config);
+    compiler.run(async (webpackError, stats) => {
+      try {
+        webpackBuildCheck(webpackError, stats);
+
+        const files = await globby('**', {cwd: outputDir});
+        expect(files).to.have.length(2);
+
+        const manifest = require(upath.join(outputDir, 'injected-manifest.js'));
+        expect(manifest).to.matchPattern([{
+          revision: /^[0-9a-f]{32}$/,
+          url: /^main\.[0-9a-f]{20}\.js$/,
+        }]);
+
+        done();
+      } catch (error) {
+        done(error);
+      }
     });
   });
 });

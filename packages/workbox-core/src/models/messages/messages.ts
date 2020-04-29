@@ -27,13 +27,6 @@ export const messages: MessageMap = {
       `${JSON.stringify(value)}.`;
   },
 
-  'not-in-sw': ({moduleName}) => {
-    if (!moduleName) {
-      throw new Error(`Unexpected input to 'not-in-sw' error.`);
-    }
-    return `The '${moduleName}' must be used in a service worker.`;
-  },
-
   'not-an-array': ({moduleName, className, funcName, paramName}) => {
     if (!moduleName || !className || !funcName || !paramName) {
       throw new Error(`Unexpected input to 'not-an-array' error.`);
@@ -96,7 +89,7 @@ export const messages: MessageMap = {
     return `Two of the entries passed to ` +
       `'workbox-precaching.PrecacheController.addToCacheList()' had the URL ` +
       `${firstEntry._entryId} but different revision details. Workbox is ` +
-      `is unable to cache and version the asset correctly. Please remove one ` +
+      `unable to cache and version the asset correctly. Please remove one ` +
       `of the entries.`;
   },
 

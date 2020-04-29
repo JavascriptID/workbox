@@ -6,12 +6,12 @@
   https://opensource.org/licenses/MIT.
 */
 
-const octokit = require('@octokit/rest').Octokit;
+const GitHubApi = require('@octokit/rest');
 const semver = require('semver');
 
 const constants = require('./constants');
 
-const github = octokit();
+const github = new GitHubApi();
 
 // github.authenticate() is synchronous, and it only stores the credentials for
 // the next request, so it should be called once per method that requires auth.
@@ -69,7 +69,7 @@ module.exports = {
       repo: constants.GITHUB_REPO,
     });
 
-    // We only want tags that are v3.0.0 or above.
+    // We only want tags that are v4.0.0 or above.
     const tagsData = tagsResponse.data;
     return tagsData.filter((tagData) => {
       return semver.gte(tagData.name, constants.MIN_RELEASE_TAG_TO_PUBLISH);
